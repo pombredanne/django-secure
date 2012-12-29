@@ -1,16 +1,23 @@
 SecurityMiddleware
 ==================
 
-The ``djangosecure.middleware.SecurityMiddleware`` performs three different
+The ``djangosecure.middleware.SecurityMiddleware`` performs six different
 tasks for you. Each one can be independently enabled or disabled with a
 setting.
 
 .. contents:: :local:
 
+
 .. _x-frame-options:
 
 X-Frame-Options: DENY
 ---------------------
+
+.. note::
+
+   Django 1.4+ provides `its own middleware and setting`_ to set the
+   ``X-Frame-Options`` header; you can use either this or Django's, there's no
+   value in using both.
 
 `Clickjacking`_ attacks use layered frames to mislead users into clicking on a
 different link from the one they think they are clicking on. Fortunately, newer
@@ -36,6 +43,8 @@ at all, decorate the view with the ``frame_deny_exempt`` decorator::
         # ...
 
 .. _Clickjacking: http://www.sectheory.com/clickjacking.htm
+.. _its own middleware and setting: https://docs.djangoproject.com/en/dev/ref/clickjacking/
+
 
 .. _http-strict-transport-security:
 
@@ -50,6 +59,11 @@ header`_. This reduces your exposure to some SSL-stripping man-in-the-middle
 
 ``SecurityMiddleware`` will set this header for you on all HTTPS responses if
 you set the :ref:`SECURE_HSTS_SECONDS` setting to a nonzero integer value.
+
+Additionally, if you set the :ref:`SECURE_HSTS_INCLUDE_SUBDOMAINS` setting to
+``True``, ``SecurityMiddleware`` will add the ``includeSubDomains`` tag to the
+``Strict-Transport-Security`` header. This is recommended, otherwise your site
+may still be vulnerable via an insecure connection to a subdomain.
 
 .. warning::
     The HSTS policy applies to your entire domain, not just the URL of the
@@ -69,6 +83,7 @@ you set the :ref:`SECURE_HSTS_SECONDS` setting to a nonzero integer value.
     may need to set the :ref:`SECURE_PROXY_SSL_HEADER` setting.
 
 .. _"Strict-Transport-Security" header: http://en.wikipedia.org/wiki/Strict_Transport_Security
+
 
 .. _x-content-type-options:
 
@@ -94,6 +109,36 @@ do this for all responses if the :ref:`SECURE_CONTENT_TYPE_NOSNIFF` setting
 is ``True``.
 
 .. _IE Security Blog: http://blogs.msdn.com/b/ie/archive/2008/09/02/ie8-security-part-vi-beta-2-update.aspx
+
+
+.. _x-xss-protection:
+
+X-XSS-Protection: 1; mode=block
+-------------------------------
+
+Some browsers have to ability to block content that appears to be an `XSS
+attack`_. They work by looking for Javascript content in the GET or POST
+parameters of a page. If the Javascript is replayed in the server's
+response the page is blocked from rendering and a error page is shown
+instead.
+
+The `X-XSS-Protection header`_ is used to control the operation of the
+XSS filter.
+
+To enable the XSS filter in the browser, and force it to always block
+suspected XSS attacks, you can pass the ``X-XSS-Protection: 1; mode=block``
+header. ``SecurityMiddleware`` will do this for all responses if the
+:ref:`SECURE_BROWSER_XSS_FILTER` setting is ``True``.
+
+.. warning::
+    The XSS filter does not prevent XSS attacks on your site, and you
+    should ensure that you are taking all other possible mesaures to
+    prevent XSS attacks. The most obvious of these is validating and
+    sanitizing all input.
+
+.. _XSS attack: http://en.wikipedia.org/wiki/Cross-site_scripting
+.. _X-XSS-Protection header: http://blogs.msdn.com/b/ie/archive/2008/07/02/ie8-security-part-iv-the-xss-filter.aspx
+
 
 .. _ssl-redirect:
 
@@ -128,3 +173,41 @@ in the :ref:`SECURE_REDIRECT_EXEMPT` setting.
     may need to set the :ref:`SECURE_PROXY_SSL_HEADER` setting.
 
 .. _nginx: http://nginx.org
+
+
+.. _proxied-ssl:
+
+Detecting proxied SSL
+---------------------
+
+.. note::
+
+   `Django 1.4+ offers the same functionality`_ built-in.  The Django setting
+   works identically to this version.
+
+In some deployment scenarios, Django's ``request.is_secure()`` method returns
+``False`` even on requests that are actually secure, because the HTTPS
+connection is made to a front-end loadbalancer or reverse-proxy, and the
+internal proxied connection that Django sees is not HTTPS. Usually in these
+cases the proxy server provides an alternative header to indicate the secured
+external connection.
+
+If this is your situation, you can set the :ref:`SECURE_PROXY_SSL_HEADER`
+setting to a tuple of ("header", "value"); if "header" is set to "value" in
+``request.META``, django-secure will tell Django to consider it a secure
+request (in other words, ``request.is_secure()`` will return ``True`` for this
+request). The "header" should be specified in the format it would be found in
+``request.META`` (e.g. "HTTP_X_FORWARDED_PROTOCOL", not
+"X-Forwarded-Protocol"). For example::
+
+    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTOCOL", "https")
+
+.. warning::
+
+   If you set this to a header that your proxy allows through from the request
+   unmodified (i.e. a header that can be spoofed), you are allowing an attacker
+   to pretend that any request is secure, even if it is not. Make sure you only
+   use a header that your proxy sets unconditionally, overriding any value from
+   the request.
+
+.. _Django 1.4+ offers the same functionality: https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header

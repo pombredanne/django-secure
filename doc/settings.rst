@@ -3,6 +3,7 @@ Settings Reference
 
 .. contents:: :local:
 
+
 .. _SECURE_CHECKS:
 
 SECURE_CHECKS
@@ -22,19 +23,30 @@ Defaults to::
         "djangosecure.check.djangosecure.check_sts",
         "djangosecure.check.djangosecure.check_frame_deny",
         "djangosecure.check.djangosecure.check_content_type_nosniff",
+        "djangosecure.check.djangosecure.check_xss_filter",
         "djangosecure.check.djangosecure.check_ssl_redirect",
     ]
+
 
 .. _SECURE_FRAME_DENY:
 
 SECURE_FRAME_DENY
 -----------------
 
+.. note::
+
+   Django 1.4+ provides the same functionality via `the X_FRAME_OPTIONS setting
+   and XFrameOptionsMiddleware`_. You can use either this setting or Django's,
+   there's no value in using both.
+
 If set to ``True``, causes :doc:`middleware` to set the :ref:`x-frame-options`
 header on all responses that do not already have that header (and where the
 view was not decorated with the ``frame_deny_exempt`` decorator).
 
 Defaults to ``False``.
+
+.. _the X_FRAME_OPTIONS setting and XFrameOptionsMiddleware: https://docs.djangoproject.com/en/dev/ref/clickjacking/
+
 
 .. _SECURE_HSTS_SECONDS:
 
@@ -47,6 +59,21 @@ already have that header.
 
 Defaults to ``0``.
 
+
+.. _SECURE_HSTS_INCLUDE_SUBDOMAINS:
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS
+------------------------------
+
+If ``True``, causes :doc:`middleware` to add the ``includeSubDomains`` tag to
+the :ref:`http-strict-transport-security` header.
+
+Has no effect unless :ref:`SECURE_HSTS_SECONDS` is set to a non-zero value.
+
+Defaults to ``False`` (only for backwards compatibility; in most cases if HSTS
+is used it should be set to ``True``).
+
+
 .. _SECURE_CONTENT_TYPE_NOSNIFF:
 
 SECURE_CONTENT_TYPE_NOSNIFF
@@ -58,24 +85,36 @@ have that header.
 
 Defaults to ``False``.
 
+
+.. _SECURE_BROWSER_XSS_FILTER:
+
+SECURE_BROWSER_XSS_FILTER
+-------------------------
+
+If set to ``True``, causes :doc:`middleware` to set the
+:ref:`x-xss-protection` header on all responses that do not already
+have that header.
+
+Defaults to ``False``.
+
+
 .. _SECURE_PROXY_SSL_HEADER:
 
 SECURE_PROXY_SSL_HEADER
 -----------------------
 
-In some deployment scenarios, Django's ``request.is_secure()`` method returns
-``False`` even on requests that are actually secure, because the HTTPS
-connection is made to a front-end loadbalancer or reverse-proxy, and the
-internal proxied connection that Django sees is not HTTPS. Usually in these
-cases the proxy server provides an alternative header to indicate the secured
-external connection. This setting, if set, should be a tuple of ("header",
-"value"); if "header" is set to "value" in ``request.META``, django-secure will
-tell Django to consider it a secure request (in other words,
-``request.is_secure()`` will return ``True`` for this request). The "header"
-should be specified in the format it would be found in ``request.META``
-(e.g. "HTTP_X_FORWARDED_PROTOCOL", not "X-Forwarded-Protocol"). For example::
+.. note::
+
+   This setting is `built-in to Django 1.4+`_.  The Django setting works
+   identically to this version.
+
+A tuple of ("header", "value"); if "header" is set to "value" in
+``request.META``, django-secure will tell Django to consider this a secure
+request. For example::
 
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTOCOL", "https")
+
+See :ref:`proxied-ssl` for more details.
 
 Defaults to ``None``.
 
@@ -86,6 +125,9 @@ Defaults to ``None``.
    to pretend that any request is secure, even if it is not. Make sure you only
    use a header that your proxy sets unconditionally, overriding any value from
    the request.
+
+.. _built-in to Django 1.4+: https://docs.djangoproject.com/en/dev/ref/settings/#secure-proxy-ssl-header
+
 
 .. _SECURE_REDIRECT_EXEMPT:
 
@@ -99,6 +141,7 @@ effect).
 
 Defaults to ``[]``.
 
+
 .. _SECURE_SSL_HOST:
 
 SECURE_SSL_HOST
@@ -110,6 +153,7 @@ directed to this host rather than the originally-requested host
 setting has no effect.
 
 Defaults to ``None``.
+
 
 .. _SECURE_SSL_REDIRECT:
 

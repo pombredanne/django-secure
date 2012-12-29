@@ -48,14 +48,18 @@ Usage
 * Set the ``SECURE_SSL_REDIRECT`` setting to ``True`` if all non-SSL requests
   should be permanently redirected to SSL.
 
-* Set the ``SECURE_HSTS_SECONDS`` setting to an integer number of seconds, if
-  you want to use `HTTP Strict Transport Security`_.
+* Set the ``SECURE_HSTS_SECONDS`` setting to an integer number of seconds and
+  ``SECURE_HSTS_INCLUDE_SUBDOMAINS`` to ``True``, if you want to use `HTTP
+  Strict Transport Security`_.
 
 * Set the ``SECURE_FRAME_DENY`` setting to ``True``, if you want to prevent
   framing of your pages and protect them from `clickjacking`_.
 
 * Set the ``SECURE_CONTENT_TYPE_NOSNIFF`` setting to ``True``, if you want to prevent
   the browser from guessing asset content types.
+
+* Set the ``SECURE_BROWSER_XSS_FILTER`` setting to ``True``, if you want to enable
+  the browser's XSS filtering protections.
 
 * Set ``SESSION_COOKIE_SECURE`` and ``SESSION_COOKIE_HTTPONLY`` to ``True`` if
   you are using ``django.contrib.sessions``. These settings are not part of
@@ -71,9 +75,9 @@ Usage
 
 .. warning::
     If ``checksecure`` gives you the all-clear, all it means is that you're now
-    taking advantage of a tiny selection of simple and easy security
-    wins. That's great, but it doesn't mean your site or your codebase is
-    secure: only a competent security audit can tell you that.
+    taking advantage of a small selection of easy security wins. That's great,
+    but it doesn't mean your site or your codebase is secure: only a competent
+    security audit can tell you that.
 
 .. end-here
 

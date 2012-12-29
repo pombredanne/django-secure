@@ -14,8 +14,9 @@ check_security_middleware.messages = {
     "SECURITY_MIDDLEWARE_NOT_INSTALLED": (
         "You do not have 'djangosecure.middleware.SecurityMiddleware' "
         "in your MIDDLEWARE_CLASSES, so the SECURE_HSTS_SECONDS, "
-        "SECURE_FRAME_DENY, SECURE_CONTENT_TYPE_NOSNIFF, and "
-        "SECURE_SSL_REDIRECT settings will have no effect.")
+        "SECURE_FRAME_DENY, SECURE_CONTENT_TYPE_NOSNIFF, "
+        "SECURE_BROWSER_XSS_FILTER and SECURE_SSL_REDIRECT settings "
+        "will have no effect.")
     }
 
 
@@ -25,10 +26,23 @@ def check_sts():
 
 check_sts.messages = {
     "STRICT_TRANSPORT_SECURITY_NOT_ENABLED": (
-        "You have not set a non-zero value for the SECURE_HSTS_SECONDS setting. "
+        "You have not set a value for the SECURE_HSTS_SECONDS setting. "
         "If your entire site is served only over SSL, you may want to consider "
         "setting a value and enabling HTTP Strict Transport Security "
         "(see http://en.wikipedia.org/wiki/Strict_Transport_Security)."
+        )
+    }
+
+
+@boolean_check("STRICT_TRANSPORT_SECURITY_NO_SUBDOMAINS")
+def check_sts_include_subdomains():
+    return bool(conf.SECURE_HSTS_INCLUDE_SUBDOMAINS)
+
+check_sts_include_subdomains.messages = {
+    "STRICT_TRANSPORT_SECURITY_NO_SUBDOMAINS": (
+        "You have not set the SECURE_HSTS_INCLUDE_SUBDOMAINS setting to True. "
+        "Without this, your site is potentially vulnerable to attack "
+        "via an insecure connection to a subdomain."
         )
     }
 
@@ -60,6 +74,21 @@ check_content_type_nosniff.messages = {
         "'x-content-type-options: nosniff' header. "
         "You should consider enabling this header to prevent the "
         "browser from identifying content types incorrectly."
+        )
+    }
+
+
+@boolean_check("BROWSER_XSS_FILTER_NOT_ENABLED")
+def check_xss_filter():
+    return conf.SECURE_BROWSER_XSS_FILTER
+
+check_xss_filter.messages = {
+    "BROWSER_XSS_FILTER_NOT_ENABLED": (
+        "Your SECURE_BROWSER_XSS_FILTER setting is not set to True, "
+        "so your pages will not be served with an "
+        "'x-xss-protection: 1; mode=block' header. "
+        "You should consider enabling this header to activate the "
+        "browser's XSS filtering and help prevent XSS attacks."
         )
     }
 

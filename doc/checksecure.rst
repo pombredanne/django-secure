@@ -43,6 +43,10 @@ default:
 
    Warns if :ref:`SECURE_HSTS_SECONDS` is not set to a non-zero value.
 
+.. py:function:: check_sts_include_subdomains
+
+   Warns if :ref:`SECURE_HSTS_INCLUDE_SUBDOMAINS` is not ``True``.
+
 .. py:function:: check_frame_deny
 
    Warns if :ref:`SECURE_FRAME_DENY` is not ``True``.
@@ -50,6 +54,10 @@ default:
 .. py:function:: check_content_type_nosniff
 
    Warns if :ref:`SECURE_CONTENT_TYPE_NOSNIFF` is not ``True``.
+
+.. py:function:: check_xss_filter
+
+   Warns if :ref:`SECURE_BROWSER_XSS_FILTER` is not ``True``.
 
 .. py:function:: check_ssl_redirect
 
